@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v2.0.0
+_src_path: git@github.com:elastic/mlops-platform-template.git
+description: Testing processing data at scale in AWS
+license: MIT
+mlflow_version: 2.16.2
+name: PoC multi instance data preparation
+package: poc_multi_instance_data_preparation
+python_version: '3.12'
+repository: poc-multi-instance-data-preparation
+sonarqube_project_key: ''
+user: avillalba-elastic

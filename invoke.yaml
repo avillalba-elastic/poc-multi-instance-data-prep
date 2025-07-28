@@ -1,0 +1,8 @@
+# https://docs.pyinvoke.org/en/latest/index.html
+
+run:
+  echo: true
+project:
+  name: PoC multi instance data preparation
+  package: poc_multi_instance_data_preparation
+  repository: poc-multi-instance-data-preparation

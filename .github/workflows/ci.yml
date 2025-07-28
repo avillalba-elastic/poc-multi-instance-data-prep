@@ -1,0 +1,81 @@
+name: CI Pipeline
+on:
+  pull_request:
+    branches:
+      - main
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  precommit:
+    name: Run pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/auth_artifactory
+        with:
+          artifactory_user: ${{ secrets.ARTIFACTORY_USER }}
+          artifactory_token: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+      - name: Install dependencies
+        run: poetry install --only dev
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Run pre-commit
+        run: poetry run invoke checks.precommit
+  bandit:
+    name: Run security check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/auth_artifactory
+        with:
+          artifactory_user: ${{ secrets.ARTIFACTORY_USER }}
+          artifactory_token: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+      - name: Install dependencies
+        run: poetry install --only dev
+      - name: Run bandit
+        run: poetry run invoke checks.security
+  pytest:
+    name: Run tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/auth_artifactory
+        with:
+          artifactory_user: ${{ secrets.ARTIFACTORY_USER }}
+          artifactory_token: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+      - name: Install default dependencies
+        run: poetry install --only main,tests,dev
+      - name: Run tests
+        run: poetry run invoke testing.test-default-versions
+      - name: Upload coverage report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+  sonarqube:
+    name: Run SonarQube code analysis
+    runs-on: ubuntu-latest
+    needs: pytest
+    permissions: read-all
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: .
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

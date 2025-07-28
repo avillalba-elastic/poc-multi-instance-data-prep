@@ -1,0 +1,33 @@
+name: CD Pipeline
+on:
+  release:
+    types:
+      - published
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  package:
+    name: Publish package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/auth_artifactory
+        with:
+          artifactory_user: ${{ secrets.ARTIFACTORY_USER }}
+          artifactory_token: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+      - name: Install dependencies # needed to use poetry dynamic versioning plugin
+        run: poetry install --no-root
+      - name: Configure local Artifactory repository
+        run: poetry config repositories.artifactory-python-local https://artifactory.elastic.dev/artifactory/api/pypi/python-local
+      - name: Build package
+        run: poetry build
+      - name: Publish package
+        run: |
+          poetry publish \
+          --repository artifactory-python-local \
+          --username '${{ secrets.ARTIFACTORY_USER }}' \
+          --password '${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}' \

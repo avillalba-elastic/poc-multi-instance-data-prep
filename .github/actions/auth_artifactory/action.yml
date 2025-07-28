@@ -1,0 +1,20 @@
+name: Artifactory Authentication
+description: 'JFrog Artifactory authentication to install packages'
+inputs:
+  artifactory_repository_name:
+    description: "Artifactory repository name"
+    required: true
+    default: "artifactory-virtual-python" # must match pyproject.toml
+  artifactory_user:
+    description: "Artifactory user"
+    required: true
+  artifactory_token:
+    description: "Artifactory access token or password. Must be a secret."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Auth to Artifactory
+      run: |
+        poetry config http-basic.'${{ inputs.artifactory_repository_name }}' '${{ inputs.artifactory_user }}' '${{ inputs.artifactory_token }}'
+      shell: bash
