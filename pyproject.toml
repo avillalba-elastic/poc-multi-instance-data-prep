@@ -19,6 +19,8 @@ packages = [{ include = "poc_multi_instance_data_preparation", from = "src" }]
 python = "^3.12"
 mlflow = "2.16.2"
 sagemaker-mlflow = "0.1.0"
+deltalake = "^1.1.2"
+pandas = "^2.3.1"
 
 [tool.poetry.group.tests.dependencies]
 coverage = "^7.5.4"
