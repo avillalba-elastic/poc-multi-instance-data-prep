@@ -1,0 +1,1 @@
+aws stepfunctions create-state-machine --name poc-multi-instance-data-prep-seq-sharded-by-key --definition file://pipelines/seq_sharded_by_key.json --role-arn arn:aws:iam::879381254630:role/service-role/StepFunctions-mvp_mlops_platform_data_preprocessi-role-bn368ux1z --profile ml
