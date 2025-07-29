@@ -2,22 +2,10 @@
 ARG base_image=python:3.12-slim
 FROM ${base_image}
 
-ARG APP_USER_UID=1001
-ARG APP_USER_GID=1001
-
-RUN groupadd --gid ${APP_USER_GID} appgroup && \
-    useradd --uid ${APP_USER_UID} --gid ${APP_USER_GID} --shell /sbin/nologin --create-home appuser
-
-RUN mkdir -p /opt/app && chown -R ${APP_USER_UID}:${APP_USER_GID} /opt/app
+RUN mkdir -p /opt/appgroup
 WORKDIR /opt/app
 
-COPY --chown=appuser:appgroup dist/*.whl .
+COPY dist/*.whl .
 
-RUN pip install --no-cache-dir --upgrade pip
-RUN sh -c 'pip install --no-cache-dir \
-        ./*.whl && rm ./*.whl'
-
-RUN mkdir -p /opt/ml/processing/input /opt/ml/processing/output && \
-    chown -R ${APP_USER_UID}:${APP_USER_GID} /opt/ml
-
-USER appuser
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir ./*.whl && rm ./*.whl
