@@ -58,6 +58,10 @@ priority = "primary"
 name = "PyPI"
 priority = "supplemental"
 
+# ENTRYPOINT
+[tool.poetry.scripts]
+seq_process = "poc_multi_instance_data_preparation.sharded_by_key.seq_process:main"
+
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
 
