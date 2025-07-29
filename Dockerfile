@@ -17,4 +17,7 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN sh -c 'pip install --no-cache-dir \
         ./*.whl && rm ./*.whl'
 
+RUN mkdir -p /opt/ml/processing/input /opt/ml/processing/output && \
+    chown -R ${APP_USER_UID}:${APP_USER_GID} /opt/ml
+
 USER appuser
