@@ -1,0 +1,54 @@
+{
+  "Comment": "Process in batches using delta-rs",
+  "StartAt": "SetVariables",
+  "QueryLanguage": "JSONata",
+  "States": {
+    "SetVariables": {
+      "Type": "Pass",
+      "Next": "processShards",
+      "Assign": {
+        "common_tags": [
+            {
+            "Key": "division",
+            "Value": "engineering"
+            },
+            {
+            "Key": "team",
+            "Value": "ml"
+            },
+            {
+            "Key": "team-group",
+            "Value": "ml-rd"
+            },
+            {
+            "Key": "org",
+            "Value": "elasticsearch"
+            }
+        ]
+      }
+    },
+    "processShards": {
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Arguments": {
+        "ProcessingResources": {
+          "ClusterConfig": {
+            "InstanceCount": 1,
+            "InstanceType": "ml.m5.xlarge",
+            "VolumeSizeInGB": 24
+          }
+        },
+        "AppSpecification": {
+          "ImageUri": "879381254630.dkr.ecr.us-east-1.amazonaws.com/poc-multi-instance-data-prep/standard-image:latest",
+          "ContainerEntrypoint": [
+            "batch_process"
+          ]
+        },
+        "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",
+        "Tags": "{% $common_tags %}",
+        "ProcessingJobName": "{% $uuid() %}"
+      },
+      "Type": "Task",
+      "End": true
+    }
+  }
+}
