@@ -1199,19 +1199,19 @@ reference = "artifactory-virtual-python"
 
 [[package]]
 name = "deltalake"
-version = "1.1.2"
+version = "1.0.2"
 description = "Native Delta Lake Python binding based on delta-rs with Pandas integration"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "deltalake-1.1.2-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:19af2913e0f1ec0707787f0233f991ce20cb1f3dc23094abbed4af6c713f8874"},
-    {file = "deltalake-1.1.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:945980e38375cc50691fa996048d40f74dedded7e7bd1fba24159f2404c65c0f"},
-    {file = "deltalake-1.1.2-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e8e87794def72bd72d73a3c61a92d556243edbaa73e92e70d38fe8ff6bfeb9e6"},
-    {file = "deltalake-1.1.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:054b4595328e1052714a96e1e64e0c7c4c7309a14c4cc796eda1be903fb8d945"},
-    {file = "deltalake-1.1.2-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:fea0a0243835bf0e1d8e0c5ad4e3f4c3a0625d914583fc7a5ad6c970d18529e3"},
-    {file = "deltalake-1.1.2-cp39-abi3-win_amd64.whl", hash = "sha256:fafda3d945d5bfa4a57b550acd8bbfa905c9c1cc1c860bb6d3dcbbd7397a1caf"},
-    {file = "deltalake-1.1.2.tar.gz", hash = "sha256:b3f896628876cc0465dccfb40cf76eaf977c6b551197e8e29da30f0457abb841"},
+    {file = "deltalake-1.0.2-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:e4f24cdbadaf8a4c32ae535a44b89d8bcafd5cb97897de33a4ec8609058a7d50"},
+    {file = "deltalake-1.0.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:43731c48657c16c1728c90270e5e7ae1f3fa1a5b6fb0cb0b55c88c5c8f23cc3f"},
+    {file = "deltalake-1.0.2-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c921b47e4810a346650141dae30abc69564e57f26e00cce256f1837dd9c4b5fd"},
+    {file = "deltalake-1.0.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:59a3b403e5871d12920798d27f2b1e4b70f4e975381841066cb6733ccbc80071"},
+    {file = "deltalake-1.0.2-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:67d3224ce7e569bbb6d5181f9ed2530b237a1cdc87f413e5ff0bc1227aab50d5"},
+    {file = "deltalake-1.0.2-cp39-abi3-win_amd64.whl", hash = "sha256:7a1606f535416d4a38ce554019f9fcad194aaec33d638328662b2de46af03059"},
+    {file = "deltalake-1.0.2.tar.gz", hash = "sha256:fbe4cccde0af14c6e30b62cc3dd09e9a46777e8fd8e375ec809a6bf4edea756c"},
 ]
 
 [package.dependencies]
@@ -5648,4 +5648,4 @@ reference = "artifactory-virtual-python"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "ec58e60aa54b91695cf8923bfcf421615d3b390d5e16bafa60c53b95fdb01bbf"
+content-hash = "ea06b92c8ade99fc25ad03b87fc2d6692ae47961d4fb3d6e7290526499730d58"
