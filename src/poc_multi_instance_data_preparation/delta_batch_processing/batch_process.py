@@ -1,5 +1,8 @@
+import argparse
+import os
 import time
 
+import boto3
 import pyarrow as pa
 from deltalake import DeltaTable, write_deltalake
 from loguru import logger
@@ -48,17 +51,28 @@ def process(input_path: str, output_path: str, batch_size: int) -> pa.RecordBatc
 
 
 def main() -> None:  # noqa: D103
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--batch_size", type=int, required=True)
+
+    args = parser.parse_args()
+
+    ml_sagemaker_session = boto3.Session(profile_name="sagemaker", region_name="us-east-1")
+
+    credentials = ml_sagemaker_session.get_credentials().get_frozen_credentials()
+    os.environ["AWS_ACCESS_KEY_ID"] = credentials.access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = credentials.secret_key
+    os.environ["AWS_SESSION_TOKEN"] = credentials.token
+
+    logger.info("Authentication to AWS Sagemaker successfully done!")
+
     input_path = (
         "s3://ml-rd-ml-datasets/generateVectorEmbed/Qwen3-Embedding-0.6B/miracl/fr/vector_corpus/"
     )
 
-    # TODO: How to establish the batch size?
-    # TODO: Process 1 parquet per iteration, instead of batch?
-    batch_size = 25000  # ~100MB on disk
+    output_path = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-shards-batch-writes-delta/batch_size={args.batch_size}/"
 
-    output_path = "s3://mvp-mlops-platform/poc-multi-instance-data-prep-shards-batch-writes-delta/"
-
-    process(input_path, output_path, batch_size)
+    process(input_path, output_path, args.batch_size)
 
 
 if __name__ == "__main__":
