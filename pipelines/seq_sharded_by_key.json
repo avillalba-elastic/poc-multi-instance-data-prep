@@ -7,6 +7,7 @@
       "Type": "Pass",
       "Next": "processShards",
       "Assign": {
+        "instance_count": "{% $states.context.Execution.Input.instance_count %}",
         "common_tags": [
             {
             "Key": "division",
@@ -32,7 +33,7 @@
       "Arguments": {
         "ProcessingResources": {
           "ClusterConfig": {
-            "InstanceCount": 10,
+            "InstanceCount": "{% $instance_count %}",
             "InstanceType": "ml.m5.xlarge",
             "VolumeSizeInGB": 24
           }
