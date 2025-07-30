@@ -7,6 +7,7 @@
       "Type": "Pass",
       "Next": "processShards",
       "Assign": {
+        "batch_size": "{% $states.context.Execution.Input.batch_size %}",
         "common_tags": [
             {
             "Key": "division",
@@ -40,7 +41,9 @@
         "AppSpecification": {
           "ImageUri": "879381254630.dkr.ecr.us-east-1.amazonaws.com/poc-multi-instance-data-prep/standard-image:latest",
           "ContainerEntrypoint": [
-            "batch_process"
+            "batch_process",
+            "--batch_size",
+            "{% $batch_size %}"
           ]
         },
         "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",
