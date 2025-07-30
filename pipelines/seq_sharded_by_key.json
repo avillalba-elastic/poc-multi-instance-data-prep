@@ -62,7 +62,7 @@
               "OutputName": "output_data_shards",
               "S3Output": {
                 "S3UploadMode": "EndOfJob",
-                "S3Uri": "s3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_sharding_outputs/",
+                "S3Uri": "{% 's3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_sharding_outputs/instance_count=' & $instance_count %}",
                 "LocalPath": "/opt/ml/processing/output"
               }
             }
