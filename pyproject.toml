@@ -23,6 +23,7 @@ pandas = "^2.3.1"
 loguru = "^0.7.3"
 s3fs = "^2025.7.0"
 deltalake = "1.0.2"
+psutil = "^7.0.0"
 
 [tool.poetry.group.tests.dependencies]
 coverage = "^7.5.4"
