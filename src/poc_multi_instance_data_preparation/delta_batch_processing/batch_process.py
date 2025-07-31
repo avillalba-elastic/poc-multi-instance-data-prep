@@ -38,6 +38,7 @@ def process(input_path: str, output_path: str, batch_size: int) -> pa.RecordBatc
 
     for i, batch in enumerate(pa_dataset.to_batches(batch_size=batch_size)):
         logger.info(f"Processing batch {i}")
+        logger.info(f"Batch {i} has {batch.num_rows} rows")
         log_memory()
         start_time = time.time()
 
