@@ -9,22 +9,22 @@
       "Assign": {
         "batch_size": "{% $states.context.Execution.Input.batch_size %}",
         "common_tags": [
-            {
+          {
             "Key": "division",
             "Value": "engineering"
-            },
-            {
+          },
+          {
             "Key": "team",
             "Value": "ml"
-            },
-            {
+          },
+          {
             "Key": "team-group",
             "Value": "ml-rd"
-            },
-            {
+          },
+          {
             "Key": "org",
             "Value": "elasticsearch"
-            }
+          }
         ]
       }
     },
@@ -34,7 +34,7 @@
         "ProcessingResources": {
           "ClusterConfig": {
             "InstanceCount": 1,
-            "InstanceType": "ml.m5.xlarge",
+            "InstanceType": "ml.m5.2xlarge",
             "VolumeSizeInGB": 24
           }
         },

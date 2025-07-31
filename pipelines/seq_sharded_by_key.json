@@ -9,22 +9,22 @@
       "Assign": {
         "instance_count": "{% $states.context.Execution.Input.instance_count %}",
         "common_tags": [
-            {
+          {
             "Key": "division",
             "Value": "engineering"
-            },
-            {
+          },
+          {
             "Key": "team",
             "Value": "ml"
-            },
-            {
+          },
+          {
             "Key": "team-group",
             "Value": "ml-rd"
-            },
-            {
+          },
+          {
             "Key": "org",
             "Value": "elasticsearch"
-            }
+          }
         ]
       }
     },
@@ -34,7 +34,7 @@
         "ProcessingResources": {
           "ClusterConfig": {
             "InstanceCount": "{% $instance_count %}",
-            "InstanceType": "ml.m5.xlarge",
+            "InstanceType": "ml.m5.2xlarge",
             "VolumeSizeInGB": 24
           }
         },
