@@ -49,7 +49,7 @@
             "InputName": "input_data_shards",
             "S3Input": {
               "S3DataType": "S3Prefix",
-              "S3Uri": "s3://mvp-mlops-platform/poc-multi-instance-data-prep/",
+              "S3Uri": "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-parquet/",
               "LocalPath": "/opt/ml/processing/input",
               "S3DataDistributionType": "ShardedByS3Key",
               "S3InputMode": "File"

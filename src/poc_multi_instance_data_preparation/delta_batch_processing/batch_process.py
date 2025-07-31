@@ -1,12 +1,11 @@
 import argparse
-import time
 
 import pyarrow as pa
 import pyarrow.compute as pc
 from deltalake import DeltaTable, write_deltalake
 from loguru import logger
 
-from poc_multi_instance_data_preparation.utils import auth, log_memory
+from poc_multi_instance_data_preparation.utils import auth
 
 
 def write_chunk_to_delta_table(batch: pa.RecordBatch, index: int, output_path: str) -> None:
@@ -37,10 +36,7 @@ def process(input_path: str, output_path: str, batch_size: int) -> pa.RecordBatc
     pa_dataset = dt.to_pyarrow_dataset()
 
     for i, batch in enumerate(pa_dataset.to_batches(batch_size=batch_size)):
-        logger.info(f"Processing batch {i}")
-        logger.info(f"Batch {i} has {batch.num_rows} rows")
-        log_memory()
-        start_time = time.time()
+        logger.info(f"Processing batch {i}: {batch.num_rows} rows")
 
         # Simulate a dummy processing
         vec_tensor = pc.cast(batch["vector"], pa.list_(pa.float32()))
@@ -49,15 +45,11 @@ def process(input_path: str, output_path: str, batch_size: int) -> pa.RecordBatc
         new_column = pa.array(multiplied_array, type=batch["vector"].type)
         processed_batch = batch.append_column("vector_x2", new_column)
 
-        logger.info(f"Processing applied to batch {i}")
-        log_memory()
-
         write_chunk_to_delta_table(
             processed_batch, i, output_path
         )  # commits new version for every chunk, but for this PoC is OK
 
-        logger.info(f"Batch {i} saved to disk")
-        logger.info(f"Batch {i} processing time: {time.time() - start_time:.2f}s")
+        logger.info(f"Batch {i} processed and saved to disk")
 
 
 def main() -> None:  # noqa: D103
@@ -69,11 +61,11 @@ def main() -> None:  # noqa: D103
     if args.local_mode:
         auth()
 
-    input_path = (
-        "s3://ml-rd-ml-datasets/generateVectorEmbed/Qwen3-Embedding-0.6B/miracl/fr/vector_corpus/"
-    )
+    # The input path is a copy of s3://ml-rd-ml-datasets/generateVectorEmbed/Qwen3-Embedding-0.6B/miracl/fr/vector_corpus/
+    # but repartitioned in parquet files of 1GB per each.
+    input_path = "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-delta/"
 
-    output_path = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-shards-batch-writes-delta/batch_size={args.batch_size}/"
+    output_path = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_delta_outputs/batch_size={args.batch_size}/"
 
     process(input_path, output_path, args.batch_size)
 
