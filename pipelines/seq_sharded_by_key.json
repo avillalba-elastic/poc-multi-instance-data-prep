@@ -35,7 +35,7 @@
           "ClusterConfig": {
             "InstanceCount": "{% $instance_count %}",
             "InstanceType": "ml.m5.2xlarge",
-            "VolumeSizeInGB": 24
+            "VolumeSizeInGB": 128
           }
         },
         "AppSpecification": {
