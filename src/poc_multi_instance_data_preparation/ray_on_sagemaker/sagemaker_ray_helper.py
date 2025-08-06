@@ -81,7 +81,7 @@ class RayHelper:
 
         if self.is_local:
             logger.info("Starting Ray in local mode")
-            ray.init()
+            ray.init()  # by default, ray will use all the available resources in the local machine
             logger.info(ray.cluster_resources())
         else:
             ray_executable = shutil.which("ray")

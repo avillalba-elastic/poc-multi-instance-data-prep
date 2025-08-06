@@ -64,6 +64,7 @@ priority = "supplemental"
 [tool.poetry.scripts]
 seq_process = "poc_multi_instance_data_preparation.sharded_by_key.seq_process:main"
 batch_process = "poc_multi_instance_data_preparation.delta_batch_processing.batch_process:main"
+hello_ray = "poc_multi_instance_data_preparation.ray_on_sagemaker.hello_ray:main"
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }

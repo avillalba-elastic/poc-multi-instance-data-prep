@@ -10,6 +10,8 @@ ray_helper = RayHelper()
 ray_helper.start_ray()
 
 
+# You can set limits on the vCPUs to use per task (default: 1), RAM memory per task,
+# and num GPUs per task
 @ray.remote
 def f() -> Any:  # noqa: D103
     logger.info("Getting node IDS...")
@@ -17,5 +19,10 @@ def f() -> Any:  # noqa: D103
     return ray.runtime_context.get_runtime_context().get_node_id()
 
 
-node_ids = set(ray.get([f.remote() for _ in range(1000)]))
-logger.info(f"Node IDs in the Ray cluster: {node_ids}")
+def main() -> None:  # noqa: D103
+    node_ids = set(ray.get([f.remote() for _ in range(1000)]))
+    logger.info(f"Node IDs in the Ray cluster: {node_ids}")
+
+
+if __name__ == "__main__":
+    main()
