@@ -4,6 +4,11 @@ from typing import Any
 import ray
 from loguru import logger
 
+from poc_multi_instance_data_preparation.ray_on_sagemaker.sagemaker_ray_helper import RayHelper
+
+ray_helper = RayHelper()
+ray_helper.start_ray()
+
 
 @ray.remote
 def f() -> Any:  # noqa: D103
