@@ -1,10 +1,8 @@
-import json
 import os
 import shutil
 import socket
 import subprocess
 import time
-from collections.abc import Sequence
 
 import ray
 from loguru import logger
@@ -14,37 +12,21 @@ class RayHelper:
     """Helper to start a Ray cluster in a Sagemaker Job."""
 
     def __init__(self, ray_port: str = "9339"):
+        self.hostname = socket.gethostname()
         self.ray_port = ray_port
 
-        self.resource_config = self.get_resource_config()
-        self.master_host = self.resource_config["hosts"][0]
-        self.n_hosts = len(self.resource_config["hosts"])
+        # In Sagemaker, N_HOSTS must be set via env variable
+        self.is_local = "N_HOSTS" not in os.environ
 
-        self.is_local = self.master_host == "localhost" and self.n_hosts == 1
-
-    @staticmethod
-    def get_resource_config() -> dict[str, str | Sequence[str]]:
-        """Get the names of the nodes.
-
-        Returns:
-            dict[str, str | Sequence[str]]: The current hostname and the list of
-                the rest nodes hostnames.
-        """
-
-        # These environment variable are automatically set in Sagemaker
-        current_host = os.environ.get("SM_CURRENT_HOST")
-        hosts = os.environ.get("SM_HOSTS")
-
-        if current_host and hosts:
-            host_info = {"current_host": current_host, "hosts": json.loads(hosts)}
+        if self.is_local:
+            logger.warning("`N_HOSTS` is not set as environment variable.Assuming local mode...")
+            self.master_host = "localhost"
+            self.n_hosts = 1
         else:
-            logger.warning(
-                "Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables."
-                "Assumming Ray is running locally"
-            )
-            host_info = {"current_host": "localhost", "hosts": ["localhost"]}
-
-        return host_info
+            # By default, the HEAD node will be the node 0
+            cluster_prefix = self.hostname.rsplit("-", 1)[0]
+            self.master_host = f"{cluster_prefix}-0"
+            self.n_hosts = int(os.environ["N_HOSTS"])
 
     def _get_master_host_ip(self) -> str:
         """Resolves the IP of the master node.
@@ -79,6 +61,10 @@ class RayHelper:
             RuntimeError: If Ray is not found in PATH
         """
 
+        logger.info("Starting Ray cluster...")
+        logger.info(f"Cluster Master host: {self.master_host}")
+        logger.info(f"Number of nodes in the cluster: {self.n_hosts}")
+
         if self.is_local:
             logger.info("Starting Ray in local mode")
             ray.init()  # by default, ray will use all the available resources in the local machine
@@ -88,7 +74,7 @@ class RayHelper:
             if ray_executable is None:
                 raise RuntimeError("The 'ray' executable was not found in PATH")
 
-            if self.resource_config["current_host"] == self.master_host:
+            if self.hostname == self.master_host:
                 # Start the HEAD node in the master node
                 output = subprocess.run(  # noqa: S603
                     [

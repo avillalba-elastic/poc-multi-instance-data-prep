@@ -44,6 +44,9 @@
             "hello_ray"
           ]
         },
+        "Environment": {
+          "N_HOSTS": "{% $instance_count %}"
+        },
         "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",
         "Tags": "{% $common_tags %}",
         "ProcessingJobName": "{% $uuid() %}"
