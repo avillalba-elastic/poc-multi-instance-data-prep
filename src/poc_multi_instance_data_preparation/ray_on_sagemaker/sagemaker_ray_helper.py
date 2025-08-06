@@ -85,8 +85,7 @@ class RayHelper:
                 raise ValueError("Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables.")
         else:  # local mode
             logger.info("Running Ray in local mode...")
-            host_info = {"current_host": "localhost", "hosts": ["localhost"]}
-            host_info = ResourceConfig(current_host="localhost", hosts=["losthost"])
+            host_info = ResourceConfig(current_host="localhost", hosts=["localhost"])
 
         logger.info(f"Hostnames: {host_info}")
         return host_info
