@@ -4,6 +4,7 @@ import shutil
 import socket
 import subprocess
 import time
+from collections.abc import Sequence
 
 import ray
 from loguru import logger
@@ -19,22 +20,29 @@ class RayHelper:
         self.master_host = self.resource_config["hosts"][0]
         self.n_hosts = len(self.resource_config["hosts"])
 
+        self.is_local = self.master_host == "localhost" and self.n_hosts == 1
+
     @staticmethod
-    def get_resource_config() -> dict[str, str | list[str]]:
-        """Get the names of the Sagemaker nodes.
+    def get_resource_config() -> dict[str, str | Sequence[str]]:
+        """Get the names of the nodes.
 
         Returns:
-            dict[str, str | list[str]]: The current hostname and the list of
-                the rest hostnames of the Sagemaker nodes.
+            dict[str, str | Sequence[str]]: The current hostname and the list of
+                the rest nodes hostnames.
         """
 
+        # These environment variable are automatically set in Sagemaker
         current_host = os.environ.get("SM_CURRENT_HOST")
         hosts = os.environ.get("SM_HOSTS")
 
         if current_host and hosts:
             host_info = {"current_host": current_host, "hosts": json.loads(hosts)}
         else:
-            raise ValueError("Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables.")
+            logger.warning(
+                "Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables."
+                "Assumming Ray is running locally"
+            )
+            host_info = {"current_host": "localhost", "hosts": ["localhost"]}
 
         return host_info
 
@@ -70,40 +78,47 @@ class RayHelper:
         Raises:
             RuntimeError: If Ray is not found in PATH
         """
-        master_ip = self._get_master_host_ip()
 
-        ray_executable = shutil.which("ray")
-        if ray_executable is None:
-            raise RuntimeError("The 'ray' executable was not found in PATH")
-
-        if self.resource_config["current_host"] == self.master_host:
-            output = subprocess.run(  # noqa: S603
-                [
-                    ray_executable,
-                    "start",
-                    "--head",
-                    "-vvv",
-                    "--port",
-                    self.ray_port,
-                    "--include-dashboard",
-                    "false",
-                ],
-                stdout=subprocess.PIPE,
-                check=True,
-            )
-            logger.info(output.stdout.decode("utf-8"))
-
-            ray.init(address="auto", include_dashboard=False)
-            self._wait_for_workers()
-            logger.info("All workers present and accounted for")
+        if self.is_local:
+            logger.info("Starting Ray in local mode")
+            ray.init()
             logger.info(ray.cluster_resources())
         else:
-            time.sleep(10)
-            subprocess.run(  # noqa: S603
-                [ray_executable, "start", f"--address={master_ip}:{self.ray_port}", "--block"],
-                stdout=subprocess.PIPE,
-                check=True,
-            )
+            ray_executable = shutil.which("ray")
+            if ray_executable is None:
+                raise RuntimeError("The 'ray' executable was not found in PATH")
+
+            if self.resource_config["current_host"] == self.master_host:
+                # Start the HEAD node in the master node
+                output = subprocess.run(  # noqa: S603
+                    [
+                        ray_executable,
+                        "start",
+                        "--head",
+                        "-vvv",
+                        "--port",
+                        self.ray_port,
+                        "--include-dashboard",
+                        "false",
+                    ],
+                    stdout=subprocess.PIPE,
+                    check=True,
+                )
+                logger.info(output.stdout.decode("utf-8"))
+
+                ray.init(address="auto", include_dashboard=False)
+                self._wait_for_workers()
+                logger.info("All workers present and accounted for")
+                logger.info(ray.cluster_resources())
+            else:
+                # Connect the worker node to the Ray cluster
+                master_ip = self._get_master_host_ip()
+                time.sleep(10)
+                subprocess.run(  # noqa: S603
+                    [ray_executable, "start", f"--address={master_ip}:{self.ray_port}", "--block"],
+                    stdout=subprocess.PIPE,
+                    check=True,
+                )
 
     def _wait_for_workers(self, timeout: int = 60) -> None:
         """Waits for the Ray workers to join the Ray cluster.
