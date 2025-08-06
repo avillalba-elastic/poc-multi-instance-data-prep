@@ -41,10 +41,12 @@ class RayHelper:
                 the rest nodes hostnames.
         """
 
-        processing_job_name = os.environ.get("PROCESSING_JOB_NAME", None)
-        training_job_name = os.environ.get("TRAINING_JOB_NAME", None)
+        resource_config_file = "/opt/ml/config/resourceconfig.json"
+        is_processing_job = os.path.exists(resource_config_file)
 
-        if processing_job_name:
+        is_training_job = bool(os.environ.get("SM_CURRENT_HOST"))
+
+        if is_processing_job:
             logger.info("Running Ray in a Sagemaker Processing Job...")
 
             # In a Sagemaker Processing Job, the hostnames of the processing container
@@ -53,7 +55,7 @@ class RayHelper:
             max_retries = 5
             retry_interval = 5  # seconds
             num_retries = 0
-            resource_config_file = "/opt/ml/config/resourceconfig.json"
+
             resource_config = None
             while num_retries < max_retries and not resource_config:
                 try:
@@ -72,7 +74,7 @@ class RayHelper:
             if not host_info:
                 raise TimeoutError(f"Exceeded maximum time trying to load {resource_config_file}")
 
-        elif training_job_name:
+        elif is_training_job:
             logger.info("Running Ray in a Sagemaker Training Job...")
 
             # These environment variable are automatically set in Sagemaker Training Jobs
