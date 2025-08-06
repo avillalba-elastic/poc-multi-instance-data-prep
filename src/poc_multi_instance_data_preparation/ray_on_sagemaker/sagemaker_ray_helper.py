@@ -1,32 +1,90 @@
+import json
 import os
 import shutil
 import socket
 import subprocess
 import time
+from typing import TypedDict
 
 import ray
 from loguru import logger
+
+
+class ResourceConfig(TypedDict):
+    """The hostnames of all the nodes."""
+
+    current_host: str
+    hosts: list[str]
 
 
 class RayHelper:
     """Helper to start a Ray cluster in a Sagemaker Job."""
 
     def __init__(self, ray_port: str = "9339"):
-        self.hostname = socket.gethostname()
         self.ray_port = ray_port
 
-        # In Sagemaker, N_HOSTS must be set via env variable
-        self.is_local = "N_HOSTS" not in os.environ
+        self.resource_config = self.get_resource_config()
+        self.master_host = self.resource_config["hosts"][0]
+        self.n_hosts = len(self.resource_config["hosts"])
 
-        if self.is_local:
-            logger.warning("`N_HOSTS` is not set as environment variable.Assuming local mode...")
-            self.master_host = "localhost"
-            self.n_hosts = 1
-        else:
-            # By default, the HEAD node will be the node 0
-            cluster_prefix = self.hostname.rsplit("-", 1)[0]
-            self.master_host = f"{cluster_prefix}-0"
-            self.n_hosts = int(os.environ["N_HOSTS"])
+        self.is_local = self.master_host == "localhost" and self.n_hosts == 1
+
+    @staticmethod
+    def get_resource_config() -> ResourceConfig:
+        """Get the hostnames of the nodes.
+
+        It works in Sagemaker Processing and Training Jobs as well as
+        in local mode.
+
+        Returns:
+            ResourceConfig: The current hostname and the list of
+                the rest nodes hostnames.
+        """
+
+        processing_job_name = os.environ.get("PROCESSING_JOB_NAME", None)
+        training_job_name = os.environ.get("TRAINING_JOB_NAME", None)
+
+        if processing_job_name:
+            logger.info("Running Ray in a Sagemaker Processing Job...")
+
+            # In a Sagemaker Processing Job, the hostnames of the processing container
+            # are stored automatically in `/opt/ml/config/resourceconfig.json`.
+            # Reference: https://docs.aws.amazon.com/sagemaker/latest/dg/build-your-own-processing-container.html
+            max_retries = 5
+            retry_interval = 5  # seconds
+            num_retries = 0
+            resource_config_file = "/opt/ml/config/resourceconfig.json"
+            host_info = None
+            while num_retries < max_retries and not host_info:
+                try:
+                    with open(resource_config_file) as f:
+                        host_info = json.load(f)
+                except (json.JSONDecodeError, FileNotFoundError) as e:
+                    num_retries += 1
+                    logger.info(f"{num_retries} attempt to open {resource_config_file} failed: {e}")
+                    logger.info(f"Retrying in {retry_interval} seconds...")
+                    time.sleep(retry_interval)
+
+            if not host_info:
+                raise TimeoutError(f"Exceeded maximum time trying to load {resource_config_file}")
+
+        elif training_job_name:
+            logger.info("Running Ray in a Sagemaker Training Job...")
+
+            # These environment variable are automatically set in Sagemaker Training Jobs
+            current_host = os.environ.get("SM_CURRENT_HOST")
+            hosts = os.environ.get("SM_HOSTS")
+
+            if current_host and hosts:
+                host_info = {"current_host": current_host, "hosts": json.loads(hosts)}
+            else:
+                raise ValueError("Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables.")
+        else:  # local mode
+            logger.info("Running Ray in local mode...")
+            host_info = {"current_host": "localhost", "hosts": ["localhost"]}
+
+        logger.info(f"Hostnames: {host_info}")
+        return host_info
 
     def _get_master_host_ip(self) -> str:
         """Resolves the IP of the master node.
@@ -61,10 +119,6 @@ class RayHelper:
             RuntimeError: If Ray is not found in PATH
         """
 
-        logger.info("Starting Ray cluster...")
-        logger.info(f"Cluster Master host: {self.master_host}")
-        logger.info(f"Number of nodes in the cluster: {self.n_hosts}")
-
         if self.is_local:
             logger.info("Starting Ray in local mode")
             ray.init()  # by default, ray will use all the available resources in the local machine
@@ -74,7 +128,7 @@ class RayHelper:
             if ray_executable is None:
                 raise RuntimeError("The 'ray' executable was not found in PATH")
 
-            if self.hostname == self.master_host:
+            if self.resource_config["current_host"] == self.master_host:
                 # Start the HEAD node in the master node
                 output = subprocess.run(  # noqa: S603
                     [
