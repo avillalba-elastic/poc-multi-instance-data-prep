@@ -57,7 +57,7 @@ class RayHelper:
                 ip = socket.gethostbyname(self.master_host)
                 return ip
             except socket.gaierror as e:
-                print(f"DNS resolution failed for {self.master_host}: {e}")
+                logger.info(f"DNS resolution failed for {self.master_host}: {e}")
                 time.sleep(retry_interval)
 
         raise TimeoutError(
