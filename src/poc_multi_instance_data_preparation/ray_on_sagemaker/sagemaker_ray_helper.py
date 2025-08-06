@@ -54,11 +54,15 @@ class RayHelper:
             retry_interval = 5  # seconds
             num_retries = 0
             resource_config_file = "/opt/ml/config/resourceconfig.json"
-            host_info = None
-            while num_retries < max_retries and not host_info:
+            resource_config = None
+            while num_retries < max_retries and not resource_config:
                 try:
                     with open(resource_config_file) as f:
-                        host_info = json.load(f)
+                        resource_config = json.load(f)
+                        host_info = ResourceConfig(
+                            current_host=resource_config["current_host"],
+                            hosts=resource_config["hosts"],
+                        )
                 except (json.JSONDecodeError, FileNotFoundError) as e:
                     num_retries += 1
                     logger.info(f"{num_retries} attempt to open {resource_config_file} failed: {e}")
@@ -76,12 +80,13 @@ class RayHelper:
             hosts = os.environ.get("SM_HOSTS")
 
             if current_host and hosts:
-                host_info = {"current_host": current_host, "hosts": json.loads(hosts)}
+                host_info = ResourceConfig(current_host=current_host, hosts=json.loads(hosts))
             else:
                 raise ValueError("Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables.")
         else:  # local mode
             logger.info("Running Ray in local mode...")
             host_info = {"current_host": "localhost", "hosts": ["localhost"]}
+            host_info = ResourceConfig(current_host="localhost", hosts=["losthost"])
 
         logger.info(f"Hostnames: {host_info}")
         return host_info
