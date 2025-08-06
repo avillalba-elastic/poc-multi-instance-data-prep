@@ -85,6 +85,8 @@ class RayHelper:
                 host_info = ResourceConfig(current_host=current_host, hosts=json.loads(hosts))
             else:
                 raise ValueError("Missing `SM_CURRENT_HOST` or `SM_HOSTS` environment variables.")
+
+            raise NotImplementedError("Ray with SageMaker Training Jobs has not been tested yet.")
         else:  # local mode
             logger.info("Running Ray in local mode...")
             host_info = ResourceConfig(current_host="localhost", hosts=["localhost"])
