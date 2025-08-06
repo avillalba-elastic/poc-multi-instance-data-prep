@@ -128,6 +128,7 @@ class RayHelper:
         if self.is_local:
             logger.info("Starting Ray in local mode")
             ray.init()  # by default, ray will use all the available resources in the local machine
+            logger.info("Local cluster successfully set up! Cluster resources: ")
             logger.info(ray.cluster_resources())
         else:
             ray_executable = shutil.which("ray")
@@ -136,34 +137,63 @@ class RayHelper:
 
             if self.resource_config["current_host"] == self.master_host:
                 # Start the HEAD node in the master node
-                output = subprocess.run(  # noqa: S603
-                    [
-                        ray_executable,
-                        "start",
-                        "--head",
-                        "-vvv",
-                        "--port",
-                        self.ray_port,
-                        "--include-dashboard",
-                        "false",
-                    ],
-                    stdout=subprocess.PIPE,
-                    check=True,
-                )
-                logger.info(output.stdout.decode("utf-8"))
+                logger.info(f"[HEAD] Starting Ray HEAD node at port {self.ray_port}")
+                try:
+                    output = subprocess.run(  # noqa: S603
+                        [
+                            ray_executable,
+                            "start",
+                            "--head",
+                            "-vvv",
+                            f"--port={self.ray_port}",
+                            "--include-dashboard=false",
+                        ],
+                        capture_output=True,
+                        check=True,
+                        text=True,
+                    )
+                    logger.debug(f"[HEAD] `ray start --head` stdout: {output.stdout}")
+                    logger.debug(f"[HEAD] `ray start --head` stderr: {output.stderr}")
+                except subprocess.CalledProcessError as e:
+                    logger.error(f"[HEAD] Ray failed to start (return code: {e.returncode})")
+                    logger.error(f"[HEAD] stdout:\n{e.stdout}")
+                    logger.error(f"[HEAD] stderr:\n{e.stderr}")
+                    raise e
+
+                logger.info("[HEAD] HEAD Ray node successfully started!")
 
                 ray.init(address="auto", include_dashboard=False)
+                logger.info("[HEAD] HEAD Ray node successfully connected to Ray cluster!")
+
+                logger.info("[HEAD] Waiting for the WORKERs to join the Ray cluster...")
                 self._wait_for_workers()
-                logger.info("All workers present and accounted for")
+                logger.info("[HEAD] All WORKERs present and accounted for")
+
+                logger.info(
+                    "[HEAD] Ray cluster created and connection established! Cluster Resources: "
+                )
                 logger.info(ray.cluster_resources())
             else:
                 # Connect the worker node to the Ray cluster
                 master_ip = self._get_master_host_ip()
-                time.sleep(10)
-                subprocess.run(  # noqa: S603
+                time.sleep(10)  # HEAD node needs to start first.
+                logger.info(
+                    f"Connecting WORKER node to HEAD node at {master_ip}:{self.ray_port}..."
+                )
+                output = subprocess.run(  # noqa: S603
                     [ray_executable, "start", f"--address={master_ip}:{self.ray_port}", "--block"],
-                    stdout=subprocess.PIPE,
-                    check=True,
+                    capture_output=True,
+                    check=False,  # this process will end up with an exit code != 0
+                    text=True,
+                )
+                logger.debug(
+                    f"[WORKER] `ray start --address={master_ip}:{self.ray_port}` return code: {output.returncode}"  # noqa: E501
+                )
+                logger.debug(
+                    f"[WORKER] `ray start --address={master_ip}:{self.ray_port}` stdout: {output.stdout}"  # noqa: E501
+                )
+                logger.debug(
+                    f"[WORKER] `ray start --address={master_ip}:{self.ray_port}` stderr: {output.stderr}"  # noqa: E501
                 )
 
     def _wait_for_workers(self, timeout: int = 60) -> None:
