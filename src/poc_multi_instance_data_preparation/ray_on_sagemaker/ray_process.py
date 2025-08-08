@@ -49,9 +49,7 @@ def main() -> None:  # noqa: D103
     )  # to fairly compare it with Sagemaker sharding and Delta sequential batching  # TODO: Vary
 
     logger.info(f"Reading data at {INPUT_PATH}")
-    ds = ray.data.read_parquet(
-        f"local://{INPUT_PATH}"
-    )  # TODO: Parquet or open table format <-> Spark <-> Ray?
+    ds = ray.data.read_parquet(INPUT_PATH)  # TODO: Parquet or open table format <-> Spark <-> Ray?
 
     logger.info(f"Dataset at {INPUT_PATH} successfully loaded! Processing...")
     ds_transformed = ds.map_batches(
@@ -62,7 +60,7 @@ def main() -> None:  # noqa: D103
     )
 
     logger.info(f"Dataset at {INPUT_PATH} successfully processed! Saving...")
-    ds_transformed.write_parquet(f"local://{OUTPUT_PATH}")
+    ds_transformed.write_parquet(OUTPUT_PATH)
     logger.info(f"Dataset at {INPUT_PATH} successfully saved!")
 
 

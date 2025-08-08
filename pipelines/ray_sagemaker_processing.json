@@ -51,7 +51,7 @@
               "S3DataType": "S3Prefix",
               "S3Uri": "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-parquet/",
               "LocalPath": "/opt/ml/processing/input",
-              "S3DataDistributionType": "ShardedByS3Key",
+              "S3DataDistributionType": "FullyReplicated",
               "S3InputMode": "File"
             }
           }
@@ -62,7 +62,7 @@
               "OutputName": "output_data",
               "S3Output": {
                 "S3UploadMode": "EndOfJob",
-                "S3Uri": "{% 's3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_ray_sharding_outputs/instance_count=' & $instance_count %}",
+                "S3Uri": "{% 's3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_ray_processinginputs_outputs/instance_count=' & $instance_count %}",
                 "LocalPath": "/opt/ml/processing/output"
               }
             }
