@@ -3,6 +3,7 @@ import os
 import shutil
 import socket
 import subprocess
+import sys
 import time
 from typing import TypedDict
 
@@ -197,6 +198,7 @@ class RayHelper:
                 logger.debug(
                     f"[WORKER] `ray start --address={master_ip}:{self.ray_port}` stderr: {output.stderr}"  # noqa: E501
                 )
+                sys.exit(0)
 
     def _wait_for_workers(self, timeout: int = 60) -> None:
         """Waits for the Ray workers to join the Ray cluster.
