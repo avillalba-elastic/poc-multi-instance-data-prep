@@ -41,16 +41,17 @@ def main() -> None:  # noqa: D103
     ray_helper = RayHelper()
     ray_helper.start_ray()
 
-    # TODO: Processing Inputs and Outputs (Sagemaker)
-    INPUT_PATH = "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-parquet/"
-    OUTPUT_PATH = "s3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_ray_outputs/"
+    INPUT_PATH = "/opt/ml/processing/input"  # mapped through sagemaker processing inputs
+    OUTPUT_PATH = "/opt/ml/processing/output"  # mapped through sagemaker processing outputs
 
     batch_size = (
         220224 / 8
     )  # to fairly compare it with Sagemaker sharding and Delta sequential batching  # TODO: Vary
 
     logger.info(f"Reading data at {INPUT_PATH}")
-    ds = ray.data.read_parquet(INPUT_PATH)  # TODO: Parquet or open table format <-> Spark <-> Ray?
+    ds = ray.data.read_parquet(
+        f"local://{INPUT_PATH}"
+    )  # TODO: Parquet or open table format <-> Spark <-> Ray?
 
     logger.info(f"Dataset at {INPUT_PATH} successfully loaded! Processing...")
     ds_transformed = ds.map_batches(
@@ -61,7 +62,7 @@ def main() -> None:  # noqa: D103
     )
 
     logger.info(f"Dataset at {INPUT_PATH} successfully processed! Saving...")
-    ds_transformed.write_parquet(OUTPUT_PATH)
+    ds_transformed.write_parquet(f"local://{OUTPUT_PATH}")
     logger.info(f"Dataset at {INPUT_PATH} successfully saved!")
 
 
