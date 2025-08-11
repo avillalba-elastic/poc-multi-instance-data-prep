@@ -32,7 +32,7 @@ def transform(batch: pa.Table) -> pa.Table:
 def main() -> None:  # noqa: D103
     parser = argparse.ArgumentParser()
     parser.add_argument("--local_mode", type=bool, required=False, default=False)
-    parser.add_argument("--n_instances", type=int, required=True)
+    parser.add_argument("--batch_size", type=int, required=True)
     args = parser.parse_args()
 
     if args.local_mode:
@@ -42,12 +42,8 @@ def main() -> None:  # noqa: D103
     ray_helper = RayHelper()
     ray_helper.start_ray()
 
-    INPUT_PATH = "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-parquet/"
-    OUTPUT_PATH = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-s3_ray_outputs/instance_count={args.n_instances}"
-
-    batch_size = (
-        220224 / 8
-    )  # to fairly compare it with Sagemaker sharding and Delta sequential batching
+    INPUT_PATH = "/opt/ml/processing/input"  # mapped through sagemaker processing inputs
+    OUTPUT_PATH = "/opt/ml/processing/output"  # mapped through sagemaker processing outputs
 
     logger.info(f"Reading data at {INPUT_PATH}")
     ds = ray.data.read_parquet(INPUT_PATH)
@@ -55,7 +51,7 @@ def main() -> None:  # noqa: D103
     logger.info(f"Dataset at {INPUT_PATH} successfully loaded! Processing...")
     ds_transformed = ds.map_batches(
         fn=transform,
-        batch_size=batch_size,
+        batch_size=args.batch_size,
         batch_format="pyarrow",
         num_cpus=1,  # cpus reserved per batch, Ray parallelizes using all available vCPUs
     )
