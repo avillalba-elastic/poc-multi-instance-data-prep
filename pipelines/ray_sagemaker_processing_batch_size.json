@@ -1,0 +1,82 @@
+{
+  "Comment": "Running a Ray script in a Sagemaker Processing Job",
+  "StartAt": "SetVariables",
+  "QueryLanguage": "JSONata",
+  "States": {
+    "SetVariables": {
+      "Type": "Pass",
+      "Next": "processWithRay",
+      "Assign": {
+        "instance_count": "{% $states.context.Execution.Input.instance_count %}",
+        "batch_size": "{% $states.context.Execution.Input.batch_size %}",
+        "common_tags": [
+          {
+            "Key": "division",
+            "Value": "engineering"
+          },
+          {
+            "Key": "team",
+            "Value": "ml"
+          },
+          {
+            "Key": "team-group",
+            "Value": "ml-rd"
+          },
+          {
+            "Key": "org",
+            "Value": "elasticsearch"
+          }
+        ]
+      }
+    },
+    "processWithRay": {
+      "Resource": "arn:aws:states:::sagemaker:createProcessingJob.sync",
+      "Arguments": {
+        "ProcessingResources": {
+          "ClusterConfig": {
+            "InstanceCount": "{% $instance_count %}",
+            "InstanceType": "ml.m5.2xlarge",
+            "VolumeSizeInGB": 128
+          }
+        },
+        "AppSpecification": {
+          "ImageUri": "879381254630.dkr.ecr.us-east-1.amazonaws.com/poc-multi-instance-data-prep/standard-image:latest",
+          "ContainerEntrypoint": [
+            "ray_process_batch_size",
+            "--batch_size",
+            "{% $batch_size %}"
+          ]
+        },
+        "ProcessingInputs": [
+          {
+            "InputName": "input_data",
+            "S3Input": {
+              "S3DataType": "S3Prefix",
+              "S3Uri": "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-parquet/",
+              "LocalPath": "/opt/ml/processing/input",
+              "S3DataDistributionType": "FullyReplicated",
+              "S3InputMode": "File"
+            }
+          }
+        ],
+        "ProcessingOutputConfig": {
+          "Outputs": [
+            {
+              "OutputName": "output_data",
+              "S3Output": {
+                "S3UploadMode": "EndOfJob",
+                "S3Uri": "{% 's3://mvp-mlops-platform/poc-multi-instance-data-prep-seq_ray_processinginputs_outputs/instance_count=' & $instance_count %}",
+                "LocalPath": "/opt/ml/processing/output"
+              }
+            }
+          ]
+        },
+        "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",
+        "Tags": "{% $common_tags %}",
+        "ProcessingJobName": "{% $uuid() %}"
+      },
+      "Type": "Task",
+      "End": true
+    }
+  }
+}
