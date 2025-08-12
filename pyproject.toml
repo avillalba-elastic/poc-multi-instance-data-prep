@@ -25,6 +25,7 @@ s3fs = "^2025.7.0"
 deltalake = "1.0.2"
 psutil = "^7.0.0"
 ray = {extras = ["data"], version = "^2.48.0"}
+pyspark = "3.5.0"
 
 [tool.poetry.group.tests.dependencies]
 coverage = "^7.5.4"
@@ -68,6 +69,8 @@ hello_ray = "poc_multi_instance_data_preparation.ray_on_sagemaker.hello_ray:main
 ray_s3_process = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_s3_process:main"
 ray_process = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_process:main"
 ray_process_batch_size = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_process_batch_size:main"
+hello_pyspark = "poc_multi_instance_data_preparation.pyspark_on_sagemaker.hello_pyspark:main"
+
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
