@@ -32,3 +32,15 @@ target "standard-image" {
         "linux/amd64"
     ]
 }
+
+target "development-image" {
+    description = "Development image based on Python"
+    context = "."
+    dockerfile = "ray_cluster/Dockerfile"
+    tags = [
+        "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${USE_CASE}/poc-multi-instance-data-prep-dev-image:${IMAGE_VERSION}",
+    ]
+    platforms = [
+        "linux/amd64"
+    ]
+}
