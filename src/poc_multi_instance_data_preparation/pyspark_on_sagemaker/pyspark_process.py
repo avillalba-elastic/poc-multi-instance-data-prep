@@ -1,31 +1,16 @@
 import argparse
-from collections.abc import Iterable
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from pyspark.sql import SparkSession
-from pyspark.sql.types import ArrayType, FloatType, StringType, StructField, StructType
+from pyspark.sql.functions import pandas_udf
+from pyspark.sql.types import ArrayType, FloatType
 
 
-def transform(iterator: Iterable[pd.DataFrame]) -> Iterable[pd.DataFrame]:
-    """Apply a dummy processing (x2 the embeddings).
-
-    Args:
-        iterator (Iterable[pd.DataFrame]): The input batch
-
-    Yields:
-        Iterable[pd.DataFrame]: The transformed batch
-    """
-
-    # This is the most similar way to Ray for applying the same dummy processing.
-    # There are alternatives at Spark, like using pandas_udf or even `expr`. But
-    # we want to be "fair".
-
-    for pdf in iterator:
-        vec_array = pdf["vector"].tolist()
-        multiplied_array = [[x * 2 for x in sublist] for sublist in vec_array]
-        pdf["vector_x2"] = multiplied_array
-        yield pdf
+@pandas_udf(ArrayType(FloatType()))
+def vector_x2_udf(vectors: pd.Series) -> pd.Series:  # noqa: D103
+    return vectors.apply(lambda arr: (np.array(arr) * 2).tolist())
 
 
 def main() -> None:  # noqa: D103
@@ -93,14 +78,7 @@ def main() -> None:  # noqa: D103
     df = spark.read.format("delta").load(INPUT_DELTA_TABLE_PATH)
 
     logger.info(f"Processing the dataset at: {INPUT_DELTA_TABLE_PATH};")
-    schema = StructType(
-        [
-            StructField("doc_id", StringType()),
-            StructField("vector", ArrayType(FloatType())),
-            StructField("vector_x2", ArrayType(FloatType())),
-        ]
-    )
-    df_transformed = df.mapInPandas(transform, schema=schema)
+    df_transformed = df.withColumn("vector_x2", vector_x2_udf(df["vector"]))
 
     logger.info(f"Writing processed dataset to {OUTPUT_DELTA_TABLE_PATH}")
     df_transformed.write.format("delta").mode("overwrite").save(OUTPUT_DELTA_TABLE_PATH)
