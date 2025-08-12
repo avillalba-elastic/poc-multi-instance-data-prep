@@ -5,8 +5,6 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from loguru import logger
 
-from poc_multi_instance_data_preparation.utils import auth
-
 
 def process(input_file: str) -> pa.Table:
     """Applies a dummy processing to the input file.
@@ -35,7 +33,6 @@ def main() -> None:  # noqa: D103
     args = parser.parse_args()
 
     if args.local_mode:
-        auth()
         input_dir = "data"
         output_dir = "outputs"
     else:  # in Sagemaker, we mount these directories via ProcessingInputs and ProcessingOutputs

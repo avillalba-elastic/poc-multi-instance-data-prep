@@ -5,7 +5,6 @@ import ray
 from loguru import logger
 
 from poc_multi_instance_data_preparation.ray_on_sagemaker.sagemaker_ray_helper import RayHelper
-from poc_multi_instance_data_preparation.utils import auth
 
 
 def transform(batch: pa.Table) -> pa.Table:
@@ -35,7 +34,6 @@ def main() -> None:  # noqa: D103
     args = parser.parse_args()
 
     if args.local_mode:
-        auth()  # credentials must be configured before initializing Ray
         raise NotImplementedError("Local mode has not been tested yet")
 
     ray_helper = RayHelper()
