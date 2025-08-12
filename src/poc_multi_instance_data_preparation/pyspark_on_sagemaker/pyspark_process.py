@@ -82,9 +82,9 @@ def main() -> None:  # noqa: D103
         )
         # The dataset is partitioned in Parquet files of ~1GB each. Thus, we need to give enough
         # memory to the Spark JVM. Each instance has 32GB and 8 vCPU, so 8 cores per executor.
-        .config("spark.executor.memory", "28g")
-        .config("spark.executor.memoryOverhead", "4g")
-        .config("spark.driver.memory", "28g")
+        .config("spark.executor.memory", "12g")
+        .config("spark.executor.memoryOverhead", "2g")
+        .config("spark.driver.memory", "12g")
         .config("spark.executor.cores", "8")
         .getOrCreate()
     )
