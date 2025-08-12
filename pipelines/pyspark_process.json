@@ -41,7 +41,7 @@
         "AppSpecification": {
           "ImageUri": "879381254630.dkr.ecr.us-east-1.amazonaws.com/poc-multi-instance-data-prep/pyspark-standard-image:latest",
           "ContainerEntrypoint": [
-            "hello_pyspark"
+            "pyspark_process"
           ]
         },
         "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",

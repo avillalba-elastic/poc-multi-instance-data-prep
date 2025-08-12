@@ -1198,6 +1198,27 @@ url = "https://artifactory.elastic.dev/artifactory/api/pypi/python/simple"
 reference = "artifactory-virtual-python"
 
 [[package]]
+name = "delta-spark"
+version = "3.2.0"
+description = "Python APIs for using Delta Lake with Apache Spark"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "delta-spark-3.2.0.tar.gz", hash = "sha256:641967828e47c64805f8c746513da80bea24b5f19b069cdcf64561cd3692e11d"},
+    {file = "delta_spark-3.2.0-py3-none-any.whl", hash = "sha256:c4ff3fa7218e58a702cb71eb64384b0005c4d6f0bbdd0fe0b38a53564d946e09"},
+]
+
+[package.dependencies]
+importlib-metadata = ">=1.0.0"
+pyspark = ">=3.5.0,<3.6.0"
+
+[package.source]
+type = "legacy"
+url = "https://artifactory.elastic.dev/artifactory/api/pypi/python/simple"
+reference = "artifactory-virtual-python"
+
+[[package]]
 name = "deltalake"
 version = "1.0.2"
 description = "Native Delta Lake Python binding based on delta-rs with Pandas integration"
@@ -5836,4 +5857,4 @@ reference = "artifactory-virtual-python"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "f9d4288c64a09f457251e1c05d21bd9fbeccf428017375c068915fdff309e191"
+content-hash = "1ef3e4348300a90986699578890955400440417f3edd2527318de14886529b48"
