@@ -32,6 +32,7 @@ def transform(iterator: Iterable[pd.DataFrame]) -> Iterable[pd.DataFrame]:
 def main() -> None:  # noqa: D103
     parser = argparse.ArgumentParser()
     parser.add_argument("--local_mode", type=bool, required=False, default=False)
+    parser.add_argument("--n_instances", type=int, required=True)
     args = parser.parse_args()
 
     if args.local_mode:
@@ -45,9 +46,7 @@ def main() -> None:  # noqa: D103
         INPUT_DELTA_TABLE_PATH = (
             "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-delta/"
         )
-        OUTPUT_DELTA_TABLE_PATH = (
-            "s3://mvp-mlops-platform/poc-multi-instance-data-prep-delta-pyspark_outputs/"
-        )
+        OUTPUT_DELTA_TABLE_PATH = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-delta-pyspark_outputs/instance_count={args.n_instances}"
 
     # See: https://docs.delta.io/latest/quick-start.html#set-up-apache-spark-with-delta-lake
     builder = (
