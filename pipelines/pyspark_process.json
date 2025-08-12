@@ -43,7 +43,7 @@
           "ContainerEntrypoint": [
             "pyspark_process",
             "--n_instances",
-            "{% $instance_count %}"
+            "{% $string($instance_count) %}"
           ]
         },
         "RoleArn": "arn:aws:iam::879381254630:role/service-role/AmazonSageMaker-ExecutionRole-20241203T102031",
