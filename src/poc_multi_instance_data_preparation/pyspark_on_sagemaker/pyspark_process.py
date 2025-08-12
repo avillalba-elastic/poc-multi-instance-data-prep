@@ -2,9 +2,8 @@ import argparse
 from collections.abc import Iterable
 
 import pandas as pd
-import pyspark
-from delta import configure_spark_with_delta_pip
 from loguru import logger
+from pyspark.sql import SparkSession
 from pyspark.sql.types import ArrayType, FloatType, StringType, StructField, StructType
 
 
@@ -44,20 +43,34 @@ def main() -> None:  # noqa: D103
         # However you are going to run into OOO issues if your dataset does not fit in your local
         # resources.
         INPUT_DELTA_TABLE_PATH = (
-            "s3://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-delta/"
+            "s3a://mvp-mlops-platform/poc-multi-instance-data-prep-repartitioned-delta/"
         )
-        OUTPUT_DELTA_TABLE_PATH = f"s3://mvp-mlops-platform/poc-multi-instance-data-prep-delta-pyspark_outputs/instance_count={args.n_instances}"
+        OUTPUT_DELTA_TABLE_PATH = f"s3a://mvp-mlops-platform/poc-multi-instance-data-prep-delta-pyspark_outputs/instance_count={args.n_instances}"
 
     # See: https://docs.delta.io/latest/quick-start.html#set-up-apache-spark-with-delta-lake
-    builder = (
-        pyspark.sql.SparkSession.builder.appName("MyApp")
+    # and https://docs.delta.io/latest/releases.html.
+    # Also see: https://aws.amazon.com/blogs/machine-learning/load-and-transform-data-from-delta-lake-using-amazon-sagemaker-studio-and-apache-spark/
+    # In the `pyspark` Docker container, we use Scala 2.12 and Spark 3.5.0:
+    packages = ",".join(
+        [
+            "io.delta:delta-spark_2.12:3.2.0",
+            "org.apache.hadoop:hadoop-aws:3.4.0",
+            "com.amazonaws:aws-java-sdk-bundle:1.12.329",
+        ]
+    )
+
+    spark = (
+        SparkSession.builder.appName("MyApp")
+        .config("spark.jars.packages", packages)
+        .config(
+            "fs.s3a.aws.credentials.provider", "com.amazonaws.auth.ContainerCredentialsProvider"
+        )
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog"
         )
+        .getOrCreate()
     )
-
-    spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
     logger.info(f"Reading Delta table from: {INPUT_DELTA_TABLE_PATH}")
     df = spark.read.format("delta").load(INPUT_DELTA_TABLE_PATH)
