@@ -70,7 +70,7 @@ hello_ray = "poc_multi_instance_data_preparation.ray_on_sagemaker.hello_ray:main
 ray_s3_process = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_s3_process:main"
 ray_process = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_process:main"
 ray_process_batch_size = "poc_multi_instance_data_preparation.ray_on_sagemaker.ray_process_batch_size:main"
-pyspark_process = "poc_multi_instance_data_preparation.pyspark_on_sagemaker.pyspark_process:main"
+hello_pyspark = "poc_multi_instance_data_preparation.pyspark_on_sagemaker.hello_pyspark:main"
 
 
 [tool.poetry.requires-plugins]
